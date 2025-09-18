@@ -1,24 +1,24 @@
 // src/componentes/FormularioSeguro.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // 1. IMPORTADO O useMemo
 import seguroService from '../servicos/seguroService';
 import { estadosDoBrasil } from '../dados/estados';
 
 const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
     
-    const estadoInicial = {
+    // 2. A CRIAÇÃO DO OBJETO FOI ENVOLVIDA PELO useMemo
+    const estadoInicial = useMemo(() => ({
         nomeContratante: '',
         cpfContratante: '',
         destino: 'SP',
         dataInicio: '',
         dataFim: '',
         tipoPlano: 'Standart'
-    };
+    }), []); // O array vazio [] garante que ele só seja criado uma vez.
 
     const [seguro, setSeguro] = useState(estadoInicial);
     const [titulo, setTitulo] = useState('Cadastrar Novo Seguro');
 
     useEffect(() => {
-        // CORREÇÃO 1: Removido o ", estadoInicial" da condição. A verificação correta é apenas se idSeguroEditando existe.
         if (idSeguroEditando) {
             setTitulo('Editar Seguro');
             seguroService.getSeguroPorId(idSeguroEditando)
@@ -35,7 +35,6 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
             setTitulo('Cadastrar Novo Seguro');
             setSeguro(estadoInicial);
         }
-    // CORREÇÃO 2: Adicionada a dependência 'estadoInicial' ao array, conforme exigido pelo React.
     }, [idSeguroEditando, estadoInicial]);
 
     const formatarCPF = (valor) => {
