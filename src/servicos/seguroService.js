@@ -1,32 +1,30 @@
 // src/servicos/seguroService.js
 import axios from 'axios';
 
-// URL base da nossa API. Ajuste a porta se for diferente.
-const API_URL = 'https://api-seguroviagem-franciscomartins.azurewebsites.net/api/Seguros';
+// 1. Defina a API com a URL BASE (sem /api/Seguros no final)
+const api = axios.create({
+  baseURL: 'https://api-seguroviagem-franciscomartins.azurewebsites.net'
+});
 
-// Função para buscar todos os seguros (Leitura - Read)
+// 2. Use os caminhos completos em cada função, começando com /api
 const getTodosSeguros = () => {
-    return axios.get(API_URL);
+  return api.get('/api/Seguros');
 };
 
-// Função para buscar um seguro específico pelo ID
 const getSeguroPorId = (id) => {
-    return axios.get(`${API_URL}/${id}`);
+  return api.get(`/api/Seguros/${id}`);
 };
 
-// Função para criar um novo seguro (Cadastro - Create)
 const criarSeguro = (dadosSeguro) => {
-    return axios.post(API_URL, dadosSeguro);
+  return api.post('/api/Seguros', dadosSeguro);
 };
 
-// Função para atualizar um seguro existente (Edição - Update)
 const atualizarSeguro = (id, dadosSeguro) => {
-    return axios.put(`${API_URL}/${id}`, dadosSeguro);
+  return api.put(`/api/Seguros/${id}`, dadosSeguro);
 };
 
-// Função para excluir um seguro (Exclusão - Delete)
 const excluirSeguro = (id) => {
-    return axios.delete(`${API_URL}/${id}`);
+  return api.delete(`/api/Seguros/${id}`);
 };
 
 // Exporta todas as funções para que possam ser usadas em outros lugares
