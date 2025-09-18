@@ -1,15 +1,14 @@
 // src/componentes/FormularioSeguro.js
 import React, { useState, useEffect } from 'react';
 import seguroService from '../servicos/seguroService';
-import { estadosDoBrasil } from '../dados/estados'; // Certifique-se de que este arquivo foi criado em src/dados/estados.js
+import { estadosDoBrasil } from '../dados/estados';
 
 const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
     
-    // CORREÇÃO: Removida a duplicação de 'destino' e definido um valor padrão
     const estadoInicial = {
         nomeContratante: '',
         cpfContratante: '',
-        destino: 'SP', // Usando 'SP' (São Paulo) como padrão
+        destino: 'SP',
         dataInicio: '',
         dataFim: '',
         tipoPlano: 'Standart'
@@ -19,7 +18,8 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
     const [titulo, setTitulo] = useState('Cadastrar Novo Seguro');
 
     useEffect(() => {
-        if (idSeguroEditando, estadoInicial) {
+        // CORREÇÃO 1: Removido o ", estadoInicial" da condição. A verificação correta é apenas se idSeguroEditando existe.
+        if (idSeguroEditando) {
             setTitulo('Editar Seguro');
             seguroService.getSeguroPorId(idSeguroEditando)
                 .then(response => {
@@ -33,12 +33,11 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
                 .catch(error => console.error("Erro ao buscar seguro para edição:", error));
         } else {
             setTitulo('Cadastrar Novo Seguro');
-            // Limpa o formulário, resetando para o estado inicial padrão
             setSeguro(estadoInicial);
         }
-    }, [idSeguroEditando]);
+    // CORREÇÃO 2: Adicionada a dependência 'estadoInicial' ao array, conforme exigido pelo React.
+    }, [idSeguroEditando, estadoInicial]);
 
-    // FUNÇÃO ADICIONADA: para criar a máscara de CPF
     const formatarCPF = (valor) => {
         const cpfApenasNumeros = valor.replace(/\D/g, '');
         return cpfApenasNumeros
@@ -48,7 +47,6 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
             .substring(0, 14);
     };
 
-    // FUNÇÃO MODIFICADA: para aplicar a máscara de CPF ao digitar
     const handleChange = (event) => {
         const { name, value } = event.target;
         if (name === 'cpfContratante') {
@@ -58,17 +56,14 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
         }
     };
 
-    // FUNÇÃO MODIFICADA: com validações de Nome e CPF
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        // VALIDAÇÃO 1: Verificando o tamanho do nome
         if (seguro.nomeContratante.trim().length < 3) {
             alert("O nome do contratante deve ter pelo menos 3 caracteres.");
             return; 
         }
 
-        // VALIDAÇÃO 2: Verificando o tamanho do CPF (11 números)
         const cpfApenasNumeros = seguro.cpfContratante.replace(/\D/g, '');
         if (cpfApenasNumeros.length !== 11) {
             alert("O CPF deve conter 11 dígitos.");
@@ -99,7 +94,6 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
             <h2>{titulo}</h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '400px' }}>
                 
-                {/* CAMPO NOME ATUALIZADO */}
                 <input 
                     type="text" 
                     name="nomeContratante" 
@@ -110,7 +104,6 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
                     minLength="3" 
                 />
                 
-                {/* CAMPO CPF ATUALIZADO */}
                 <input 
                     type="text" 
                     name="cpfContratante" 
@@ -121,7 +114,6 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
                     maxLength="14"
                 />
                 
-                {/* CAMPO DESTINO ATUALIZADO */}
                 <label>Destino:</label>
                 <select 
                     name="destino" 
