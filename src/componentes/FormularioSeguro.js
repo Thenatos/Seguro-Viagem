@@ -2,7 +2,7 @@
 import React from 'react';
 import seguroService from '../servicos/seguroService';
 import axios from 'axios';
-import InputMask from 'react-input-mask'; // 1. IMPORTAMOS A BIBLIOTECA DA MÁSCARA
+// REMOVEMOS o import do InputMask
 
 import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, CircularProgress } from '@mui/material';
 
@@ -10,6 +10,18 @@ const formatarDataParaInput = (data) => {
     if (!data) return '';
     return new Date(data).toISOString().split('T')[0];
 };
+
+// ############################# NOVA FUNÇÃO DE MÁSCARA #############################
+const mascaraCPF = (valor) => {
+    if (!valor) return "";
+    return valor
+        .replace(/\D/g, '') // Remove tudo o que não é dígito
+        .replace(/(\d{3})(\d)/, '$1.$2') // Coloca um ponto entre o terceiro e o quarto dígitos
+        .replace(/(\d{3})(\d)/, '$1.$2') // Coloca um ponto entre o sexto e o sétimo dígitos
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2') // Coloca um hífen entre o nono e o décimo dígitos
+        .substring(0, 14); // Limita ao tamanho máximo do CPF (11 dígitos + 3 caracteres)
+};
+// ##################################################################################
 
 function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
     const [seguro, setSeguro] = React.useState({
@@ -56,7 +68,12 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setSeguro(prevState => ({ ...prevState, [name]: value }));
+        // Se o campo for o CPF, aplica a máscara. Senão, atualiza normalmente.
+        if (name === 'cpfContratante') {
+            setSeguro(prevState => ({ ...prevState, [name]: mascaraCPF(value) }));
+        } else {
+            setSeguro(prevState => ({ ...prevState, [name]: value }));
+        }
     };
 
     const onSubmit = (event) => {
@@ -101,34 +118,21 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                 required
             />
             
-            {/* ############################# CORREÇÃO FEITA AQUI ############################# */}
-            {/* 2. ENVOLVEMOS O TEXTFIELD COM O INPUTMASK E PASSAMOS A MÁSCARA DO CPF */}
-            <InputMask
-              mask="999.999.999-99"
-              value={seguro.cpfContratante}
-              onChange={handleChange}
-            >
-              {(inputProps) => (
-                <TextField
-                  {...inputProps}
-                  name="cpfContratante" // Importante manter o nome para o handleChange
-                  label="CPF do Contratante"
-                  variant="outlined"
-                  fullWidth
-                  required
-                />
-              )}
-            </InputMask>
-            {/* ############################################################################### */}
-
+            {/* O TextField do CPF volta a ser um componente simples */}
+            <TextField
+                label="CPF do Contratante"
+                name="cpfContratante"
+                value={seguro.cpfContratante}
+                onChange={handleChange} // O nosso handleChange agora tem a lógica da máscara
+                variant="outlined"
+                fullWidth
+                required
+                placeholder="000.000.000-00"
+            />
+            
             <FormControl fullWidth>
                 <InputLabel>Destino</InputLabel>
-                <Select
-                    name="destino"
-                    value={seguro.destino}
-                    label="Destino"
-                    onChange={handleChange}
-                >
+                <Select name="destino" value={seguro.destino} label="Destino" onChange={handleChange}>
                     {estados.map(estado => (
                         <MenuItem key={estado.id} value={estado.nome}>
                             {estado.nome}
@@ -139,12 +143,7 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
 
             <FormControl fullWidth>
                 <InputLabel>Tipo do Plano</InputLabel>
-                <Select
-                    name="tipoPlano"
-                    value={seguro.tipoPlano}
-                    label="Tipo do Plano"
-                    onChange={handleChange}
-                >
+                <Select name="tipoPlano" value={seguro.tipoPlano} label="Tipo do Plano" onChange={handleChange}>
                     <MenuItem value="Standart">Standart</MenuItem>
                     <MenuItem value="Premium">Premium</MenuItem>
                     <MenuItem value="Business">Business</MenuItem>
