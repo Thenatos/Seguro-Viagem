@@ -1,152 +1,172 @@
 // src/componentes/FormularioSeguro.js
-import React, { useState, useEffect, useMemo } from 'react'; // 1. IMPORTADO O useMemo
+import React, { useState, useEffect } from 'react';
 import seguroService from '../servicos/seguroService';
-import { estadosDoBrasil } from '../dados/estados';
 
-const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
-    
-    // 2. A CRIAÇÃO DO OBJETO FOI ENVOLVIDA PELO useMemo
-    const estadoInicial = useMemo(() => ({
+// Importando os componentes do Material-UI
+import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, CircularProgress } from '@mui/material';
+
+// Adapta o formato da data para o input date do HTML
+const formatarDataParaInput = (data) => {
+    if (!data) return '';
+    // Converte a data (ex: "2025-09-18T00:00:00") para "YYYY-MM-DD"
+    return new Date(data).toISOString().split('T')[0];
+};
+
+function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
+    const [seguro, setSeguro] = useState({
         nomeContratante: '',
         cpfContratante: '',
-        destino: 'SP',
+        destino: 'São Paulo', // Valor padrão
+        tipoPlano: 'Standart', // Valor padrão
         dataInicio: '',
-        dataFim: '',
-        tipoPlano: 'Standart'
-    }), []); // O array vazio [] garante que ele só seja criado uma vez.
-
-    const [seguro, setSeguro] = useState(estadoInicial);
-    const [titulo, setTitulo] = useState('Cadastrar Novo Seguro');
+        dataFim: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         if (idSeguroEditando) {
-            setTitulo('Editar Seguro');
+            setLoading(true);
             seguroService.getSeguroPorId(idSeguroEditando)
                 .then(response => {
-                    const dados = {
-                        ...response.data,
-                        dataInicio: response.data.dataInicio.split('T')[0],
-                        dataFim: response.data.dataFim.split('T')[0]
-                    };
+                    // Formata as datas antes de colocar no estado
+                    const dados = response.data;
+                    dados.dataInicio = formatarDataParaInput(dados.dataInicio);
+                    dados.dataFim = formatarDataParaInput(dados.dataFim);
                     setSeguro(dados);
+                    setLoading(false);
                 })
-                .catch(error => console.error("Erro ao buscar seguro para edição:", error));
-        } else {
-            setTitulo('Cadastrar Novo Seguro');
-            setSeguro(estadoInicial);
+                .catch(err => {
+                    setError('Falha ao carregar dados do seguro.');
+                    setLoading(false);
+                });
         }
-    }, [idSeguroEditando, estadoInicial]);
-
-    const formatarCPF = (valor) => {
-        const cpfApenasNumeros = valor.replace(/\D/g, '');
-        return cpfApenasNumeros
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-            .substring(0, 14);
-    };
+    }, [idSeguroEditando]);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        if (name === 'cpfContratante') {
-            setSeguro(prevState => ({ ...prevState, [name]: formatarCPF(value) }));
-        } else {
-            setSeguro(prevState => ({ ...prevState, [name]: value }));
-        }
+        setSeguro(prevState => ({ ...prevState, [name]: value }));
     };
 
-    const handleSubmit = (event) => {
+    const onSubmit = (event) => {
         event.preventDefault();
+        setLoading(true);
 
-        if (seguro.nomeContratante.trim().length < 3) {
-            alert("O nome do contratante deve ter pelo menos 3 caracteres.");
-            return; 
-        }
+        const promessa = idSeguroEditando
+            ? seguroService.atualizarSeguro(idSeguroEditando, seguro)
+            : seguroService.criarSeguro(seguro);
 
-        const cpfApenasNumeros = seguro.cpfContratante.replace(/\D/g, '');
-        if (cpfApenasNumeros.length !== 11) {
-            alert("O CPF deve conter 11 dígitos.");
-            return;
-        }
-
-        const seguroParaEnviar = {
-            ...seguro,
-            dataInicio: `${seguro.dataInicio}T00:00:00`,
-            dataFim: `${seguro.dataFim}T00:00:00`,
-        };
-
-        const acao = idSeguroEditando
-            ? seguroService.atualizarSeguro(idSeguroEditando, seguroParaEnviar)
-            : seguroService.criarSeguro(seguroParaEnviar);
-
-        acao.then(() => {
-            alert(`Seguro ${idSeguroEditando ? 'atualizado' : 'cadastrado'} com sucesso!`);
-            onSeguroSalvo();
-        }).catch(error => {
-            console.error("Erro ao salvar seguro:", error);
-            alert("Ocorreu um erro ao salvar. Verifique o console.");
-        });
+        promessa
+            .then(() => {
+                alert(`Seguro ${idSeguroEditando ? 'atualizado' : 'salvo'} com sucesso!`);
+                onSeguroSalvo();
+            })
+            .catch(err => {
+                setError(`Erro ao salvar seguro: ${err.message}`);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     };
+
+    if (loading) return <CircularProgress />; // Mostra um spinner de carregamento
+    if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
     return (
-        <div>
-            <h2>{titulo}</h2>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '400px' }}>
-                
-                <input 
-                    type="text" 
-                    name="nomeContratante" 
-                    value={seguro.nomeContratante} 
-                    onChange={handleChange} 
-                    placeholder="Nome do Contratante" 
-                    required 
-                    minLength="3" 
-                />
-                
-                <input 
-                    type="text" 
-                    name="cpfContratante" 
-                    value={seguro.cpfContratante} 
-                    onChange={handleChange} 
-                    placeholder="CPF" 
-                    required 
-                    maxLength="14"
-                />
-                
-                <label>Destino:</label>
-                <select 
-                    name="destino" 
-                    value={seguro.destino} 
-                    onChange={handleChange} 
-                    required
+        // Usamos o componente Box do MUI para criar um container e dar espaçamento
+        <Box
+            component="form"
+            onSubmit={onSubmit}
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2, // Espaçamento entre os itens
+                maxWidth: '500px',
+                margin: 'auto'
+            }}
+        >
+            <h2>{idSeguroEditando ? 'Editar Seguro' : 'Cadastrar Novo Seguro'}</h2>
+            
+            <TextField
+                label="Nome do Contratante"
+                name="nomeContratante"
+                value={seguro.nomeContratante}
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                required
+            />
+            
+            <TextField
+                label="CPF do Contratante"
+                name="cpfContratante"
+                value={seguro.cpfContratante}
+                onChange={handleChange}
+                variant="outlined"
+                fullWidth
+                required
+            />
+
+            <FormControl fullWidth>
+                <InputLabel>Destino</InputLabel>
+                <Select
+                    name="destino"
+                    value={seguro.destino}
+                    label="Destino"
+                    onChange={handleChange}
                 >
-                    {estadosDoBrasil.map(estado => (
-                        <option key={estado.sigla} value={estado.sigla}>
-                            {estado.nome}
-                        </option>
-                    ))}
-                </select>
+                    <MenuItem value="São Paulo">São Paulo</MenuItem>
+                    <MenuItem value="Rio de Janeiro">Rio de Janeiro</MenuItem>
+                    <MenuItem value="Salvador">Salvador</MenuItem>
+                </Select>
+            </FormControl>
 
-                <label>Tipo do Plano:</label>
-                <select name="tipoPlano" value={seguro.tipoPlano} onChange={handleChange} required>
-                    <option value="Standart">Standart</option>
-                    <option value="Premium">Premium</option>
-                    <option value="Business">Business</option>
-                </select>
+            <FormControl fullWidth>
+                <InputLabel>Tipo do Plano</InputLabel>
+                <Select
+                    name="tipoPlano"
+                    value={seguro.tipoPlano}
+                    label="Tipo do Plano"
+                    onChange={handleChange}
+                >
+                    <MenuItem value="Standart">Standart</MenuItem>
+                    <MenuItem value="Premium">Premium</MenuItem>
+                    <MenuItem value="Business">Business</MenuItem>
+                </Select>
+            </FormControl>
 
-                <label>Início da Vigência:</label>
-                <input type="date" name="dataInicio" value={seguro.dataInicio} onChange={handleChange} required />
-                
-                <label>Fim da Vigência:</label>
-                <input type="date" name="dataFim" value={seguro.dataFim} onChange={handleChange} required />
-                
-                <div>
-                    <button type="submit">Salvar</button>
-                    <button type="button" onClick={onCancelar} style={{ marginLeft: '10px' }}>Cancelar</button>
-                </div>
-            </form>
-        </div>
+            <TextField
+                label="Início da Vigência"
+                name="dataInicio"
+                type="date"
+                value={seguro.dataInicio}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }} // Garante que o label não sobreponha a data
+                fullWidth
+                required
+            />
+
+            <TextField
+                label="Fim da Vigência"
+                name="dataFim"
+                type="date"
+                value={seguro.dataFim}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                required
+            />
+            
+            {/* Box para alinhar os botões lado a lado */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
+                <Button variant="text" onClick={onCancelar}>Cancelar</Button>
+                <Button type="submit" variant="contained" color="primary">
+                    {loading ? 'Salvando...' : 'Salvar'}
+                </Button>
+            </Box>
+
+        </Box>
     );
-};
+}
 
 export default FormularioSeguro;
