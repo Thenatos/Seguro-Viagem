@@ -19,7 +19,7 @@ const FormularioSeguro = ({ idSeguroEditando, onSeguroSalvo, onCancelar }) => {
     const [titulo, setTitulo] = useState('Cadastrar Novo Seguro');
 
     useEffect(() => {
-        if (idSeguroEditando) {
+        if (idSeguroEditando, estadoInicial) {
             setTitulo('Editar Seguro');
             seguroService.getSeguroPorId(idSeguroEditando)
                 .then(response => {
