@@ -1,12 +1,12 @@
-// src/servicos/seguroService.js
+
 import axios from 'axios';
 
-// 1. Defina a API com a URL BASE (sem /api/Seguros no final)
+
 const api = axios.create({
   baseURL: 'https://api-seguroviagem-franciscomartins.azurewebsites.net'
 });
 
-// 2. Use os caminhos completos em cada função, começando com /api
+
 const getTodosSeguros = () => {
   return api.get('/api/Seguros');
 };
