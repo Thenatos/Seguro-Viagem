@@ -18,12 +18,15 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+// ############################# CORREÇÃO FEITA AQUI #############################
 // Função para formatar a data para o padrão brasileiro (DD/MM/YYYY)
+// A data que vem da API já está em um formato que o new Date() entende.
 const formatarDataBR = (data) => {
     if (!data) return 'N/A';
-    // Adiciona um 'T00:00:00' para garantir que a data seja interpretada como local e não UTC
-    return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
+    // Apenas passamos a data diretamente para o construtor Date
+    return new Date(data).toLocaleDateString('pt-BR');
 };
+// ###############################################################################
 
 
 function ListaSeguros({ seguros, onEditar, onExcluir }) {
@@ -33,7 +36,6 @@ function ListaSeguros({ seguros, onEditar, onExcluir }) {
     }
 
     return (
-        // O Paper cria um container com uma leve sombra, destacando a tabela
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="tabela de seguros">
                 <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
@@ -51,7 +53,6 @@ function ListaSeguros({ seguros, onEditar, onExcluir }) {
                     {seguros.map((seguro) => (
                         <TableRow
                             key={seguro.id}
-                            // Adiciona um efeito de hover para destacar a linha
                             sx={{ '&:hover': { backgroundColor: '#fafafa' } }}
                         >
                             <TableCell>{seguro.nomeContratante}</TableCell>
@@ -61,7 +62,6 @@ function ListaSeguros({ seguros, onEditar, onExcluir }) {
                             <TableCell>{formatarDataBR(seguro.dataInicio)}</TableCell>
                             <TableCell>{formatarDataBR(seguro.dataFim)}</TableCell>
                             <TableCell>
-                                {/* Box para alinhar os ícones */}
                                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                                     <IconButton 
                                         aria-label="editar" 
