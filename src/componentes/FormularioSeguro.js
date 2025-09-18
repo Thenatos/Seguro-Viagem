@@ -1,6 +1,7 @@
 // src/componentes/FormularioSeguro.js
 import React, { useState, useEffect } from 'react';
 import seguroService from '../servicos/seguroService';
+import axios from 'axios'; // Precisamos do axios para a busca dos estados
 
 // Importando os componentes do Material-UI
 import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, CircularProgress } from '@mui/material';
@@ -8,7 +9,6 @@ import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, Circ
 // Adapta o formato da data para o input date do HTML
 const formatarDataParaInput = (data) => {
     if (!data) return '';
-    // Converte a data (ex: "2025-09-18T00:00:00") para "YYYY-MM-DD"
     return new Date(data).toISOString().split('T')[0];
 };
 
@@ -21,15 +21,31 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
         dataInicio: '',
         dataFim: ''
     });
+
+    // Novo estado para armazenar a lista de estados
+    const [estados, setEstados] = useState([]); 
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Efeito para buscar os estados da API do IBGE quando o componente é montado
+    useEffect(() => {
+        axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+            .then(response => {
+                setEstados(response.data); // Armazena a lista de estados
+            })
+            .catch(err => {
+                console.error("Falha ao buscar estados:", err);
+                // Adiciona alguns estados manualmente em caso de falha na API
+                setEstados([{ id: 1, nome: "São Paulo" }, { id: 2, nome: "Rio de Janeiro" }]);
+            });
+    }, []);
 
     useEffect(() => {
         if (idSeguroEditando) {
             setLoading(true);
             seguroService.getSeguroPorId(idSeguroEditando)
                 .then(response => {
-                    // Formata as datas antes de colocar no estado
                     const dados = response.data;
                     dados.dataInicio = formatarDataParaInput(dados.dataInicio);
                     dados.dataFim = formatarDataParaInput(dados.dataFim);
@@ -69,21 +85,14 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
             });
     };
 
-    if (loading) return <CircularProgress />; // Mostra um spinner de carregamento
+    if (loading && !estados.length) return <CircularProgress />; // Mostra spinner enquanto carrega tudo
     if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
     return (
-        // Usamos o componente Box do MUI para criar um container e dar espaçamento
         <Box
             component="form"
             onSubmit={onSubmit}
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2, // Espaçamento entre os itens
-                maxWidth: '500px',
-                margin: 'auto'
-            }}
+            sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: '500px', margin: 'auto' }}
         >
             <h2>{idSeguroEditando ? 'Editar Seguro' : 'Cadastrar Novo Seguro'}</h2>
             
@@ -115,9 +124,12 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                     label="Destino"
                     onChange={handleChange}
                 >
-                    <MenuItem value="São Paulo">São Paulo</MenuItem>
-                    <MenuItem value="Rio de Janeiro">Rio de Janeiro</MenuItem>
-                    <MenuItem value="Salvador">Salvador</MenuItem>
+                    {/* Mapeia a lista de estados para criar os itens do menu */}
+                    {estados.map(estado => (
+                        <MenuItem key={estado.id} value={estado.nome}>
+                            {estado.nome}
+                        </MenuItem>
+                    ))}
                 </Select>
             </FormControl>
 
@@ -141,7 +153,7 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                 type="date"
                 value={seguro.dataInicio}
                 onChange={handleChange}
-                InputLabelProps={{ shrink: true }} // Garante que o label não sobreponha a data
+                InputLabelProps={{ shrink: true }}
                 fullWidth
                 required
             />
@@ -157,10 +169,9 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                 required
             />
             
-            {/* Box para alinhar os botões lado a lado */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
                 <Button variant="text" onClick={onCancelar}>Cancelar</Button>
-                <Button type="submit" variant="contained" color="primary">
+                <Button type="submit" variant="contained" color="primary" disabled={loading}>
                     {loading ? 'Salvando...' : 'Salvar'}
                 </Button>
             </Box>
