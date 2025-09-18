@@ -1,5 +1,5 @@
 // src/componentes/FormularioSeguro.js
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import seguroService from '../servicos/seguroService';
 import axios from 'axios';
 import InputMask from 'react-input-mask'; // 1. IMPORTAMOS A BIBLIOTECA DA MÁSCARA
