@@ -1,47 +1,42 @@
 // src/componentes/FormularioSeguro.js
-import React, { useState, useEffect } from 'react';
+import React, 'react';
 import seguroService from '../servicos/seguroService';
-import axios from 'axios'; // Precisamos do axios para a busca dos estados
+import axios from 'axios';
+import InputMask from 'react-input-mask'; // 1. IMPORTAMOS A BIBLIOTECA DA MÁSCARA
 
-// Importando os componentes do Material-UI
 import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, CircularProgress } from '@mui/material';
 
-// Adapta o formato da data para o input date do HTML
 const formatarDataParaInput = (data) => {
     if (!data) return '';
     return new Date(data).toISOString().split('T')[0];
 };
 
 function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
-    const [seguro, setSeguro] = useState({
+    const [seguro, setSeguro] = React.useState({
         nomeContratante: '',
         cpfContratante: '',
-        destino: 'São Paulo', // Valor padrão
-        tipoPlano: 'Standart', // Valor padrão
+        destino: 'São Paulo',
+        tipoPlano: 'Standart',
         dataInicio: '',
         dataFim: ''
     });
 
-    // Novo estado para armazenar a lista de estados
-    const [estados, setEstados] = useState([]); 
+    const [estados, setEstados] = React.useState([]);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState('');
 
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-
-    // Efeito para buscar os estados da API do IBGE quando o componente é montado
-    useEffect(() => {
+    React.useEffect(() => {
         axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
             .then(response => {
-                setEstados(response.data); // Armazena a lista de estados
+                setEstados(response.data);
             })
             .catch(err => {
                 console.error("Falha ao buscar estados:", err);
-                // Adiciona alguns estados manualmente em caso de falha na API
                 setEstados([{ id: 1, nome: "São Paulo" }, { id: 2, nome: "Rio de Janeiro" }]);
             });
     }, []);
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (idSeguroEditando) {
             setLoading(true);
             seguroService.getSeguroPorId(idSeguroEditando)
@@ -85,7 +80,7 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
             });
     };
 
-    if (loading && !estados.length) return <CircularProgress />; // Mostra spinner enquanto carrega tudo
+    if (loading && !estados.length) return <CircularProgress />;
     if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
     return (
@@ -106,15 +101,25 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                 required
             />
             
-            <TextField
-                label="CPF do Contratante"
-                name="cpfContratante"
-                value={seguro.cpfContratante}
-                onChange={handleChange}
-                variant="outlined"
-                fullWidth
-                required
-            />
+            {/* ############################# CORREÇÃO FEITA AQUI ############################# */}
+            {/* 2. ENVOLVEMOS O TEXTFIELD COM O INPUTMASK E PASSAMOS A MÁSCARA DO CPF */}
+            <InputMask
+              mask="999.999.999-99"
+              value={seguro.cpfContratante}
+              onChange={handleChange}
+            >
+              {(inputProps) => (
+                <TextField
+                  {...inputProps}
+                  name="cpfContratante" // Importante manter o nome para o handleChange
+                  label="CPF do Contratante"
+                  variant="outlined"
+                  fullWidth
+                  required
+                />
+              )}
+            </InputMask>
+            {/* ############################################################################### */}
 
             <FormControl fullWidth>
                 <InputLabel>Destino</InputLabel>
@@ -124,7 +129,6 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                     label="Destino"
                     onChange={handleChange}
                 >
-                    {/* Mapeia a lista de estados para criar os itens do menu */}
                     {estados.map(estado => (
                         <MenuItem key={estado.id} value={estado.nome}>
                             {estado.nome}
