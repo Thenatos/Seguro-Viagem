@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // URL base da nossa API. Ajuste a porta se for diferente.
-const API_URL = 'https://api-seguroviagem-2025-seu-nome.azurewebsites.net/api/Seguros';
+const API_URL = 'https://victorious-cliff-0ebcc850f.1.azurestaticapps.net';
 
 // Função para buscar todos os seguros (Leitura - Read)
 const getTodosSeguros = () => {
