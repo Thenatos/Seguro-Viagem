@@ -130,7 +130,7 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                 placeholder="000.000.000-00"
             />
             
-            <FormControl fullWidth> 
+            <FormControl fullWidth> // Campo de Seleção para o Destino
                 <InputLabel>Destino</InputLabel>
                 <Select name="destino" value={seguro.destino} label="Destino" onChange={handleChange}>
                     {estados.map(estado => (

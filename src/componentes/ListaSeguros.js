@@ -30,9 +30,9 @@ function ListaSeguros({ seguros, onEditar, onExcluir }) {
 
     return (
         //Aplicando efeitos visuais de Elevação ao clicar ou passar o mouse 
-        <TableContainer component={Paper}> //
+        <TableContainer component={Paper}> 
             <Table sx={{ minWidth: 650 }} aria-label="tabela de seguros">
-                <TableHead sx={{ backgroundColor: '#99dbf8ff' }}>
+                <TableHead sx={{ backgroundColor: '#99dbf8ff' }}> // Cabeçalho da Tabela com cor de fundo personalizada
                     <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Nome do Contratante</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>CPF</TableCell>
