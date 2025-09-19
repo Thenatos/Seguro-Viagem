@@ -1,4 +1,4 @@
-// src/componentes/ListaSeguros.js
+
 import React from 'react';
 
 // Importando os componentes de Tabela do Material-UI
@@ -14,31 +14,25 @@ import {
     Box 
 } from '@mui/material';
 
-// Importando os Ícones
+// Importando os Ícones do Material-UI
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-
-// ############################# CORREÇÃO FEITA AQUI #############################
-// Função para formatar a data para o padrão brasileiro (DD/MM/YYYY)
-// A data que vem da API já está em um formato que o new Date() entende.
-const formatarDataBR = (data) => {
+const formatarDataBR = (data) => { // Função para formatar a data para o padrão brasileiro (DD/MM/YYYY)
     if (!data) return 'N/A';
-    // Apenas passamos a data diretamente para o construtor Date
+    // Apenas informa a data diretamente para o construtor Date
     return new Date(data).toLocaleDateString('pt-BR');
 };
-// ###############################################################################
-
-
-function ListaSeguros({ seguros, onEditar, onExcluir }) {
+function ListaSeguros({ seguros, onEditar, onExcluir }) { 
     
-    if (!seguros || seguros.length === 0) {
+    if (!seguros || seguros.length === 0) { 
         return <p>Nenhum seguro cadastrado ainda.</p>;
     }
 
     return (
-        <TableContainer component={Paper}>
+        //Aplicando efeitos visuais de Elevação ao clicar ou passar o mouse 
+        <TableContainer component={Paper}> //
             <Table sx={{ minWidth: 650 }} aria-label="tabela de seguros">
-                <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                <TableHead sx={{ backgroundColor: '#99dbf8ff' }}>
                     <TableRow>
                         <TableCell sx={{ fontWeight: 'bold' }}>Nome do Contratante</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>CPF</TableCell>
@@ -50,12 +44,12 @@ function ListaSeguros({ seguros, onEditar, onExcluir }) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {seguros.map((seguro) => (
-                        <TableRow
+                    {seguros.map((seguro) => ( 
+                        <TableRow 
                             key={seguro.id}
-                            sx={{ '&:hover': { backgroundColor: '#fafafa' } }}
+                            sx={{ '&:hover': { backgroundColor: '#cee8f3ff' } }}
                         >
-                            <TableCell>{seguro.nomeContratante}</TableCell>
+                            <TableCell>{seguro.nomeContratante}</TableCell> 
                             <TableCell>{seguro.cpfContratante}</TableCell>
                             <TableCell>{seguro.destino}</TableCell>
                             <TableCell>{seguro.tipoPlano}</TableCell>

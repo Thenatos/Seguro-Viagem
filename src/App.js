@@ -37,7 +37,7 @@ function App() {
 
   const handleExcluir = (id) => {
     if (window.confirm("Tem certeza que deseja excluir este seguro?")) {
-      seguroService.excluirSeguro(id)
+      seguroService.excluirSeguro(id) // Chama o serviço para excluir
         .then(() => {
           alert("Seguro excluído com sucesso!");
           carregarSeguros(); // Recarrega a lista
@@ -53,7 +53,7 @@ function App() {
     carregarSeguros(); // Recarrega a lista para mostrar a alteração
   };
 
-  const handleCancelar = () => {
+  const handleCancelar = () => { // Função para cancelar o formulário
     setExibindoFormulario(false);
     setIdSeguroEditando(null);
   }

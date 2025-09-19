@@ -1,8 +1,8 @@
-// src/componentes/FormularioSeguro.js
+
 import React from 'react';
 import seguroService from '../servicos/seguroService';
 import axios from 'axios';
-// REMOVEMOS o import do InputMask
+
 
 import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Box, CircularProgress } from '@mui/material';
 
@@ -11,7 +11,7 @@ const formatarDataParaInput = (data) => {
     return new Date(data).toISOString().split('T')[0];
 };
 
-// ############################# NOVA FUNÇÃO DE MÁSCARA #############################
+// Função para aplicar a máscara de CPF
 const mascaraCPF = (valor) => {
     if (!valor) return "";
     return valor
@@ -21,8 +21,7 @@ const mascaraCPF = (valor) => {
         .replace(/(\d{3})(\d{1,2})$/, '$1-$2') // Coloca um hífen entre o nono e o décimo dígitos
         .substring(0, 14); // Limita ao tamanho máximo do CPF (11 dígitos + 3 caracteres)
 };
-// ##################################################################################
-
+// Componente de Formulário de Seguro
 function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
     const [seguro, setSeguro] = React.useState({
         nomeContratante: '',
@@ -33,11 +32,11 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
         dataFim: ''
     });
 
-    const [estados, setEstados] = React.useState([]);
-    const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState('');
+    const [estados, setEstados] = React.useState([]); // Lista de estados para o campo de destino
+    const [loading, setLoading] = React.useState(false); 
+    const [error, setError] = React.useState('');  
 
-    React.useEffect(() => {
+    React.useEffect(() => {// Buscar a lista de estados do IBGE
         axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
             .then(response => {
                 setEstados(response.data);
@@ -48,8 +47,8 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
             });
     }, []);
 
-    React.useEffect(() => {
-        if (idSeguroEditando) {
+    React.useEffect(() => { 
+        if (idSeguroEditando) {// Se estivermos editando, busca os dados do seguro
             setLoading(true);
             seguroService.getSeguroPorId(idSeguroEditando)
                 .then(response => {
@@ -68,23 +67,24 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        // Se o campo for o CPF, aplica a máscara. Senão, atualiza normalmente.
+// Aplica a máscara de CPF apenas no campo específico
         if (name === 'cpfContratante') {
             setSeguro(prevState => ({ ...prevState, [name]: mascaraCPF(value) }));
         } else {
             setSeguro(prevState => ({ ...prevState, [name]: value }));
         }
     };
-
+// Função para lidar com o envio do formulário
     const onSubmit = (event) => {
         event.preventDefault();
         setLoading(true);
 
+        // Decide se vai criar ou atualizar com base na presença do idSeguroEditando
         const promessa = idSeguroEditando
             ? seguroService.atualizarSeguro(idSeguroEditando, seguro)
             : seguroService.criarSeguro(seguro);
 
-        promessa
+        promessa 
             .then(() => {
                 alert(`Seguro ${idSeguroEditando ? 'atualizado' : 'salvo'} com sucesso!`);
                 onSeguroSalvo();
@@ -101,14 +101,14 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
     if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
     return (
-        <Box
+        <Box 
             component="form"
             onSubmit={onSubmit}
             sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: '500px', margin: 'auto' }}
         >
             <h2>{idSeguroEditando ? 'Editar Seguro' : 'Cadastrar Novo Seguro'}</h2>
             
-            <TextField
+            <TextField // O TextField do Nome do Contratante permanece o mesmo
                 label="Nome do Contratante"
                 name="nomeContratante"
                 value={seguro.nomeContratante}
@@ -130,7 +130,7 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                 placeholder="000.000.000-00"
             />
             
-            <FormControl fullWidth>
+            <FormControl fullWidth> 
                 <InputLabel>Destino</InputLabel>
                 <Select name="destino" value={seguro.destino} label="Destino" onChange={handleChange}>
                     {estados.map(estado => (
@@ -141,7 +141,7 @@ function FormularioSeguro({ idSeguroEditando, onSeguroSalvo, onCancelar }) {
                 </Select>
             </FormControl>
 
-            <FormControl fullWidth>
+            <FormControl fullWidth> 
                 <InputLabel>Tipo do Plano</InputLabel>
                 <Select name="tipoPlano" value={seguro.tipoPlano} label="Tipo do Plano" onChange={handleChange}>
                     <MenuItem value="Standart">Standart</MenuItem>
